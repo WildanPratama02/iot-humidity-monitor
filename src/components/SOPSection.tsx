@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import type { LocationData } from "../lib/locationData";
+import { type LocationData, encodeImagePath } from "../lib/locationData";
 
 interface SOPSectionProps {
   locationData: LocationData;
@@ -59,7 +59,7 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                     </div>
                   ) : (
                     <Image
-                      src={locationData.qrActionPath}
+                      src={encodeImagePath(locationData.qrActionPath)}
                       alt="QR Action Plan"
                       fill
                       className="object-contain rounded-lg p-2"
@@ -103,7 +103,7 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                     </div>
                   ) : (
                     <Image
-                      src={locationData.qrSummaryPath}
+                      src={encodeImagePath(locationData.qrSummaryPath)}
                       alt="QR Summary Action Plan"
                       fill
                       className="object-contain rounded-lg p-2"
@@ -194,7 +194,7 @@ export function SOPSection({ locationData }: SOPSectionProps) {
             ) : (
               <div className="rounded-xl overflow-hidden">
               <Image
-                src={locationData.sopImagePath}
+                src={encodeImagePath(locationData.sopImagePath)}
                 alt="Standard Operating Procedure"
                 width={800}
                 height={600}

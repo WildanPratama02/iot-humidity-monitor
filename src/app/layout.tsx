@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CustomQueryClientProvider } from "@/components/providers/query-client-provider";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "IoT Humidity Monitoring Dashboard",
@@ -31,7 +32,9 @@ export default function RootLayout({
     <html lang="id">
       <body className="font-sans antialiased">
         <CustomQueryClientProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </CustomQueryClientProvider>
       </body>
     </html>

@@ -1,0 +1,180 @@
+/**
+ * IoT Humidity Monitor - Backend Server
+ * Express.js with JWT Authentication and RBAC
+ */
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+
+// Import controllers
+const authController = require('./controllers/authController');
+const dataController = require('./controllers/dataController');
+const notificationController = require('./controllers/notificationController');
+
+// Import middleware
+const { verifyToken, verifyAdmin, optionalToken } = require('./middleware/auth');
+
+const app = express();
+const PORT = parseInt(process.env.PORT, 10) || 8090;
+
+// Middleware
+app.use(cors({
+    origin: process.env.FRONTEND_URL || '*',
+    credentials: true
+}));
+app.use(express.json());
+
+// Request logging (development)
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
+// ============================================
+// PUBLIC ROUTES (No auth required)
+// ============================================
+
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Test database connection
+app.get('/test-db', async (req, res) => {
+    try {
+        const pool = require('./config/database');
+        const result = await pool.query('SELECT NOW()');
+        res.json({ 
+            success: true, 
+            message: 'Database connected',
+            time: result.rows[0].now 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Database connection failed',
+            error: error.message 
+        });
+    }
+});
+
+// Authentication
+app.post('/auth/login', authController.login);
+
+// Get VAPID public key for push subscription
+app.get('/notifications/vapid-public-key', notificationController.getVapidPublicKey);
+
+// ============================================
+// PROTECTED ROUTES (Auth required)
+// ============================================
+
+// Get current user profile
+app.get('/auth/me', verifyToken, authController.getCurrentUser);
+
+// Save push subscription (requires login to link to user)
+app.post('/notifications/subscribe', verifyToken, notificationController.saveSubscription);
+
+// ============================================
+// ADMIN ONLY ROUTES
+// ============================================
+
+// User management
+app.post('/users', verifyToken, verifyAdmin, authController.register);
+app.get('/users', verifyToken, verifyAdmin, authController.getAllUsers);
+app.delete('/users/:id', verifyToken, verifyAdmin, authController.deleteUser);
+
+// Get all locations (admin can see all)
+app.get('/locations', verifyToken, dataController.getAllLocations);
+
+// ============================================
+// DATA ROUTES (IoT Device Data)
+// ============================================
+
+// These routes remain public for IoT devices to push data
+// Or can be protected with device-specific API keys
+
+// Get all devices
+app.get('/devices', dataController.getAllDevices);
+
+// Get sensor data by device
+app.get('/data/:deviceId', dataController.getDataByDevice);
+
+// Insert sensor data (from IoT devices)
+app.post('/data', dataController.insertData);
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route tidak ditemukan'
+    });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+    console.error('Server error:', error);
+    res.status(500).json({
+        success: false,
+        message: 'Terjadi kesalahan server'
+    });
+});
+
+// ============================================
+// START SERVER
+// ============================================
+
+const fs = require('fs');
+const https = require('https');
+const http = require('http');
+
+const startServer = () => {
+    const sslPath = './ssl';
+    const hasSSL = fs.existsSync(`${sslPath}/server.key`) && fs.existsSync(`${sslPath}/server.crt`);
+
+    const HTTPS_PORT = PORT;        // 8090 for browsers
+    const HTTP_PORT = PORT + 1;     // 8091 for IoT devices
+
+    // Always start HTTP server for IoT devices
+    http.createServer(app).listen(HTTP_PORT, '0.0.0.0', () => {
+        console.log(`📡 HTTP Server for IoT devices on http://0.0.0.0:${HTTP_PORT}`);
+    });
+
+    // Start HTTPS server if certificates exist (for browsers)
+    if (hasSSL) {
+        const httpsOptions = {
+            key: fs.readFileSync(`${sslPath}/server.key`),
+            cert: fs.readFileSync(`${sslPath}/server.crt`)
+        };
+
+        https.createServer(httpsOptions, app).listen(HTTPS_PORT, '0.0.0.0', () => {
+            console.log(`
+============================================
+🔐 IoT Humidity Monitor Backend
+============================================
+🌐 HTTPS (Browsers): https://192.168.43.175:${HTTPS_PORT}
+📡 HTTP  (IoT):      http://192.168.43.175:${HTTP_PORT}
+📅 Started at: ${new Date().toISOString()}
+============================================
+            `);
+        });
+    } else {
+        console.log(`
+============================================
+🚀 IoT Humidity Monitor Backend (HTTP Only)
+============================================
+⚠️  SSL Certificates not found in ./ssl
+🌐 Server running on http://192.168.43.175:${HTTP_PORT}
+📅 Started at: ${new Date().toISOString()}
+============================================
+        `);
+    }
+};
+
+startServer();
+
+module.exports = app;

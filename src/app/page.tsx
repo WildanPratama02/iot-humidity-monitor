@@ -16,12 +16,22 @@ import { Footer } from '@/components/Footer';
 import { SOPSection } from '@/components/SOPSection';
 import { getLocationData } from '@/lib/locationData';
 import { StatusIndicator } from '@/components/StatusIndicator';
+import { AuthGuard } from '@/components/AuthGuard';
+import { UserMenu, useFilteredLocations } from '@/components/UserMenu';
+import { useAuth } from '@/context/AuthContext';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 
 type StatusFilter = 'all' | DeviceStatus;
 
-export default function DashboardPage() {
+function DashboardContent() {
+  // Auth context for role-based filtering
+  const { user } = useAuth();
+  
   // Mengambil data lokasi yang sudah di-grouping dengan status
-  const { data: locations, latestReadingsMap, isLoading, isError, error } = useLocationsWithStatus();
+  const { data: allLocations, latestReadingsMap, isLoading, isError, error } = useLocationsWithStatus();
+  
+  // Filter locations based on user role (Admin sees all, PIC sees only assigned)
+  const locations = useFilteredLocations(allLocations || []);
 
   // Request notification permission on app load
   useNotificationPermission();
@@ -275,6 +285,9 @@ export default function DashboardPage() {
                     <p>Total Device: {locations?.reduce((acc, loc) => acc + loc.devices.length, 0) || 0}</p>
                   </div>
                 </div>
+
+                {/* User Menu */}
+                <UserMenu />
               </div>
             </div>
           )}
@@ -384,4 +397,16 @@ function AlertSystemWrapper({
 }) {
   useAlertSystem(sensorData, locationName);
   return null;
+}
+
+/**
+ * Dashboard Page with Authentication Guard
+ * Redirects to /login if not authenticated
+ */
+export default function DashboardPage() {
+  return (
+    <AuthGuard>
+      <DashboardContent />
+    </AuthGuard>
+  );
 }

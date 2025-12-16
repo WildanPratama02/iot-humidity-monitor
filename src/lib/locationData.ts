@@ -1,3 +1,11 @@
+/**
+ * Encode image path to handle special characters like & in folder names
+ */
+export function encodeImagePath(path: string): string {
+  // Split by '/', encode each segment, then rejoin
+  return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+}
+
 export interface LocationData {
   locationName: string;
   actionPlanUrl: string;

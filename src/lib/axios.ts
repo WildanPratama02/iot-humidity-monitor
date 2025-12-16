@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { DeviceFromAPI, SensorDataFromAPI } from '@/types/api';
 
-// Pastikan .env.local memiliki: NEXT_PUBLIC_API_URL=http://localhost:3000
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.43.175:8090';
+// Pastikan .env.local memiliki: NEXT_PUBLIC_API_URL=https://192.168.43.175:8090
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://192.168.43.175:8090';
+
+const TOKEN_KEY = 'iot_auth_token';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -10,6 +12,42 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Request interceptor - Attach JWT token to all requests
+api.interceptors.request.use(
+  (config) => {
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - Handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Only handle on client side
+    if (typeof window !== 'undefined' && error.response?.status === 401) {
+      // Clear invalid token
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem('iot_auth_user');
+
+      // Redirect to login (only if not already on login page)
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Fetch semua device (Flat List)
 export const fetchDevices = async (): Promise<DeviceFromAPI[]> => {
