@@ -1,0 +1,22 @@
+{
+  "name": "api-iot-server",
+  "version": "1.0.0",
+  "description": "API Server for Multi-Device IoT (Node.js + Express + PostgreSQL + ESP8266 Integration)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["iot", "api", "esp8266", "temperature", "humidity", "postgresql"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
