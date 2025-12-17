@@ -10,22 +10,45 @@ export interface ExportData {
   data: SensorDataFromAPI[];
 }
 
+// Helper to safely parse datetime from various formats
+const safeParseDatetime = (datetime: string): Date => {
+  try {
+    // Try parseISO first (for ISO format strings)
+    const parsed = parseISO(datetime);
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  } catch {
+    // Fall through to next method
+  }
+
+  // Fallback to native Date parsing (handles PostgreSQL formats)
+  return new Date(datetime);
+};
+
 export const exportToExcel = (data: ExportData[], fileName: string = 'export') => {
+  console.log('[Export Debug] Starting Excel export, data:', data);
+
   // Create a new workbook
   const wb = XLSX.utils.book_new();
 
   // Add a worksheet for each device
   data.forEach((device) => {
+    console.log(`[Export Debug] Processing device ${device.deviceId}, records: ${device.data.length}`);
+
     // Transform data for export
-    const worksheetData = device.data.map((item) => ({
-      'Device ID': item.id_device,
-      'Tanggal': format(parseISO(item.datetime), 'yyyy-MM-dd'),
-      'Waktu': format(parseISO(item.datetime), 'HH:mm:ss'),
-      'Tanggal Lengkap': format(parseISO(item.datetime), 'yyyy-MM-dd HH:mm:ss'),
-      'Suhu (°C)': item.temp,
-      'Kelembaban (%)': item.hum,
-      'Lokasi': device.deviceLocation,
-    }));
+    const worksheetData = device.data.map((item) => {
+      const dateObj = safeParseDatetime(item.datetime);
+      return {
+        'Device ID': item.id_device,
+        'Tanggal': format(dateObj, 'yyyy-MM-dd'),
+        'Waktu': format(dateObj, 'HH:mm:ss'),
+        'Tanggal Lengkap': format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
+        'Suhu (°C)': item.temp,
+        'Kelembaban (%)': item.hum,
+        'Lokasi': device.deviceLocation,
+      };
+    });
 
     // Create worksheet
     const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -60,11 +83,12 @@ export const exportToCSV = (data: ExportData[], fileName: string = 'export') => 
 
   data.forEach((device) => {
     device.data.forEach((item) => {
+      const dateObj = safeParseDatetime(item.datetime);
       allData.push({
         'Device ID': item.id_device,
-        'Tanggal': format(parseISO(item.datetime), 'yyyy-MM-dd'),
-        'Waktu': format(parseISO(item.datetime), 'HH:mm:ss'),
-        'Tanggal Lengkap': format(parseISO(item.datetime), 'yyyy-MM-dd HH:mm:ss'),
+        'Tanggal': format(dateObj, 'yyyy-MM-dd'),
+        'Waktu': format(dateObj, 'HH:mm:ss'),
+        'Tanggal Lengkap': format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
         'Suhu (°C)': item.temp,
         'Kelembaban (%)': item.hum,
         'Lokasi': device.deviceLocation,

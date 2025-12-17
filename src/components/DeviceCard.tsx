@@ -1,6 +1,6 @@
 "use client";
 
-import { Thermometer, Droplets, Activity } from 'lucide-react';
+import { Thermometer, Droplets, Activity, MapPin, Info, Wifi } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeviceFromAPI } from '@/types/api';
 import { useDeviceHistory } from '@/hooks/useIoTData';
@@ -44,6 +44,28 @@ export function DeviceCard({ device }: DeviceCardProps) {
             {lastUpdated}
           </div>
         </CardTitle>
+        
+        {/* Device Details */}
+        <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 text-sm text-gray-600">
+          {device.detil_location && (
+            <div className="grid grid-cols-[140px_auto] gap-2 items-center">
+              <span className="font-medium flex items-center gap-2">
+                <Info className="h-4 w-4 text-green-500" />
+                Detail Location
+              </span>
+              <span>{device.detil_location}</span>
+            </div>
+          )}
+          {device.mac_address && (
+            <div className="grid grid-cols-[140px_auto] gap-2 items-center">
+              <span className="font-medium flex items-center gap-2">
+                <Wifi className="h-4 w-4 text-purple-500" />
+                MAC Address
+              </span>
+              <span>{device.mac_address}</span>
+            </div>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-6">

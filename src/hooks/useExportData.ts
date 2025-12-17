@@ -23,27 +23,26 @@ export const useExportData = () => {
     try {
       // Fetch data for each device
       const promises = deviceIds.map(async (deviceId) => {
+        console.log(`[Export Debug] Fetching device: ${deviceId}, start: ${startDate}, end: ${endDate}`);
         const { data } = await api.get(`/data/${deviceId}`, {
           params: {
             start_date: startDate,
             end_date: endDate,
           },
         });
+        console.log(`[Export Debug] Device ${deviceId} returned ${Array.isArray(data) ? data.length : 0} records`);
         return data as SensorDataFromAPI[];
       });
 
       const results = await Promise.all(promises);
       const allData = results.flat();
 
-      // Filter data by date range (backend might not support filtering)
-      const filteredData = allData.filter((item) => {
-        const itemDate = new Date(item.datetime).toISOString().split('T')[0];
-        return itemDate >= startDate && itemDate <= endDate;
-      });
+      console.log(`[Export Debug] Total records fetched: ${allData.length}`);
 
       setIsLoading(false);
-      return filteredData;
+      return allData;
     } catch (err) {
+      console.error('[Export Debug] Error:', err);
       setIsLoading(false);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
       return [];

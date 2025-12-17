@@ -62,8 +62,12 @@ export default function LoginPage() {
                 <div className="p-8">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4">
-                            <Droplets className="h-8 w-8 text-white" />
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4 p-3">
+                            <img 
+                                src="/logo parkland white.png" 
+                                alt="Parkland Logo" 
+                                className="w-full h-full object-contain"
+                            />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">IoT Humidity Monitor</h1>
                         <p className="text-gray-500 mt-2">Silakan masuk untuk melanjutkan</p>
@@ -146,7 +150,7 @@ export default function LoginPage() {
                     {/* Footer */}
                     <div className="mt-8 text-center">
                         <p className="text-xs text-gray-400">
-                            © {new Date().getFullYear()} PT. Sung Chang Indonesia
+                            © 2026 PT. Parkland World Jepara
                         </p>
                     </div>
                 </div>

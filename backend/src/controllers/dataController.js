@@ -98,21 +98,47 @@ const insertData = async (req, res) => {
 /**
  * Get Sensor Data by Device
  * GET /data/:deviceId
+ * Query params:
+ *   - start_date: ISO date string (e.g., '2024-01-01')
+ *   - end_date: ISO date string (e.g., '2024-01-31')
+ *   - limit: number of records (default 1440, ignored if date range provided)
  * Returns sensor history for a specific device
  */
 const getDataByDevice = async (req, res) => {
     try {
         const { deviceId } = req.params;
-        const limit = parseInt(req.query.limit) || 100;
+        const { start_date, end_date } = req.query;
+        const limit = parseInt(req.query.limit) || 1440;
 
-        const result = await pool.query(
-            `SELECT id, id_device, temp, hum, datetime
-             FROM tb_data
-             WHERE id_device = $1
-             ORDER BY datetime DESC
-             LIMIT $2`,
-            [deviceId, limit]
-        );
+        let result;
+
+        // If date range is provided, filter by date
+        if (start_date && end_date) {
+            console.log(`[Export Debug] Device: ${deviceId}, Start: ${start_date}, End: ${end_date}`);
+
+            // Use DATE casting for proper date-only comparison
+            result = await pool.query(
+                `SELECT id, id_device, temp, hum, datetime
+                 FROM tb_data
+                 WHERE id_device = $1
+                   AND datetime::DATE >= $2::DATE
+                   AND datetime::DATE <= $3::DATE
+                 ORDER BY datetime DESC`,
+                [deviceId, start_date, end_date]
+            );
+
+            console.log(`[Export Debug] Found ${result.rows.length} records`);
+        } else {
+            // Fall back to limit-based query
+            result = await pool.query(
+                `SELECT id, id_device, temp, hum, datetime
+                 FROM tb_data
+                 WHERE id_device = $1
+                 ORDER BY datetime DESC
+                 LIMIT $2`,
+                [deviceId, limit]
+            );
+        }
 
         res.json(result.rows);
 
@@ -132,7 +158,7 @@ const getDataByDevice = async (req, res) => {
 const getAllDevices = async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT id_device, location FROM tb_device ORDER BY location'
+            'SELECT id_device, location, detil_location, mac_address FROM tb_device ORDER BY location'
         );
 
         res.json(result.rows);

@@ -4,9 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:https": "node server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:all": "concurrently --names \"FRONTEND,BACKEND\" -c \"cyan,yellow\" \"npm run dev\" \"npm run dev:backend\"",
+    "dev:all:https": "concurrently --names \"FRONTEND,BACKEND\" -c \"cyan,yellow\" \"npm run dev:https\" \"npm run dev:backend\"",
     "build": "next build",
     "start": "next start",
     "start:https": "cross-env NODE_ENV=production node server.js",
+    "prod:backend": "cd backend && npm run prod",
+    "prod:all": "concurrently --names \"FRONTEND,BACKEND\" -c \"cyan,yellow\" \"npm run start:https\" \"npm run prod:backend\"",
     "lint": "eslint"
   },
   "dependencies": {

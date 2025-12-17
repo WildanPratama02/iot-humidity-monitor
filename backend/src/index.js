@@ -25,11 +25,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Request logging (development)
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
+// Request logging (development only)
+if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+        next();
+    });
+}
 
 // ============================================
 // PUBLIC ROUTES (No auth required)
