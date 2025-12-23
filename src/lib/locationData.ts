@@ -1,4 +1,15 @@
 /**
+ * Generate cache-busting version string
+ * Updates every hour to balance freshness with caching benefit
+ * Use this as a React key prop to force re-render when image changes
+ */
+export function getImageCacheKey(): string {
+  const now = new Date();
+  // Create version based on date and hour (changes every hour)
+  return `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}`;
+}
+
+/**
  * Encode image path to handle special characters like & in folder names
  */
 export function encodeImagePath(path: string): string {
