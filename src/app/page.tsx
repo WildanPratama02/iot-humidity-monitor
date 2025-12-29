@@ -36,6 +36,14 @@ function DashboardContent() {
   // Request notification permission on app load
   useNotificationPermission();
 
+  // Auto-subscribe to push notifications when authenticated
+  const { isSubscribed, isSupported, error: pushError } = usePushSubscription();
+  
+  // Debug log for push subscription status
+  useEffect(() => {
+    console.log('[Push Debug] Supported:', isSupported, 'Subscribed:', isSubscribed, 'Error:', pushError);
+  }, [isSupported, isSubscribed, pushError]);
+
   // State untuk menyimpan lokasi mana yang sedang aktif dilihat
   const [activeLocationName, setActiveLocationName] = useState<string | null>(null);
 

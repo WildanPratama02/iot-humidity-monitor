@@ -22,10 +22,15 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
  */
 const saveSubscription = async (req, res) => {
     try {
+        console.log('[Notification] saveSubscription called');
+        console.log('[Notification] Body:', JSON.stringify(req.body, null, 2));
+        console.log('[Notification] User from token:', req.user);
+        
         const { endpoint, keys } = req.body;
         const userId = req.user?.userId; // From verifyToken middleware
 
         if (!endpoint || !keys) {
+            console.log('[Notification] Error: Missing endpoint or keys');
             return res.status(400).json({
                 success: false,
                 message: 'Subscription data tidak lengkap'
@@ -33,6 +38,7 @@ const saveSubscription = async (req, res) => {
         }
 
         if (!userId) {
+            console.log('[Notification] Error: No userId from token');
             return res.status(401).json({
                 success: false,
                 message: 'User harus login untuk mendaftarkan notifikasi'

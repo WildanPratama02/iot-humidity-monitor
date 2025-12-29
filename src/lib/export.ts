@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { format, parseISO } from 'date-fns';
 import { SensorDataFromAPI } from '@/types/api';
 
@@ -26,79 +26,87 @@ const safeParseDatetime = (datetime: string): Date => {
   return new Date(datetime);
 };
 
-export const exportToExcel = (data: ExportData[], fileName: string = 'export') => {
+export const exportToExcel = async (data: ExportData[], fileName: string = 'export') => {
   console.log('[Export Debug] Starting Excel export, data:', data);
 
   // Create a new workbook
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
 
   // Add a worksheet for each device
   data.forEach((device) => {
     console.log(`[Export Debug] Processing device ${device.deviceId}, records: ${device.data.length}`);
 
-    // Transform data for export
-    const worksheetData = device.data.map((item) => {
+    const ws = wb.addWorksheet(`Device ${device.deviceId}`);
+
+    // Define columns
+    ws.columns = [
+      { header: 'Device ID', key: 'deviceId', width: 15 },
+      { header: 'Tanggal', key: 'tanggal', width: 12 },
+      { header: 'Waktu', key: 'waktu', width: 10 },
+      { header: 'Tanggal Lengkap', key: 'tanggalLengkap', width: 20 },
+      { header: 'Suhu (°C)', key: 'suhu', width: 12 },
+      { header: 'Kelembaban (%)', key: 'kelembaban', width: 15 },
+      { header: 'Lokasi', key: 'lokasi', width: 20 },
+    ];
+
+    // Add rows
+    device.data.forEach((item) => {
       const dateObj = safeParseDatetime(item.datetime);
-      return {
-        'Device ID': item.id_device,
-        'Tanggal': format(dateObj, 'yyyy-MM-dd'),
-        'Waktu': format(dateObj, 'HH:mm:ss'),
-        'Tanggal Lengkap': format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
-        'Suhu (°C)': item.temp,
-        'Kelembaban (%)': item.hum,
-        'Lokasi': device.deviceLocation,
-      };
+      ws.addRow({
+        deviceId: item.id_device,
+        tanggal: format(dateObj, 'yyyy-MM-dd'),
+        waktu: format(dateObj, 'HH:mm:ss'),
+        tanggalLengkap: format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
+        suhu: item.temp,
+        kelembaban: item.hum,
+        lokasi: device.deviceLocation,
+      });
     });
 
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(worksheetData);
-
-    // Set column widths
-    const colWidths = [
-      { wch: 15 }, // Device ID
-      { wch: 12 }, // Tanggal
-      { wch: 10 }, // Waktu
-      { wch: 20 }, // Tanggal Lengkap
-      { wch: 12 }, // Suhu
-      { wch: 15 }, // Kelembaban
-      { wch: 20 }, // Lokasi
-    ];
-    ws['!cols'] = colWidths;
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, `Device ${device.deviceId}`);
+    // Style header row
+    ws.getRow(1).font = { bold: true };
   });
 
   // Generate file name with timestamp
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
   const fullFileName = `${fileName}_${timestamp}.xlsx`;
 
-  // Save file
-  XLSX.writeFile(wb, fullFileName);
+  // Generate buffer and download
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', fullFileName);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 export const exportToCSV = (data: ExportData[], fileName: string = 'export') => {
-  // Combine all device data
-  const allData: any[] = [];
+  // Combine all device data into CSV string
+  const headers = ['Device ID', 'Tanggal', 'Waktu', 'Tanggal Lengkap', 'Suhu (°C)', 'Kelembaban (%)', 'Lokasi'];
+  const rows: string[] = [headers.join(',')];
 
   data.forEach((device) => {
     device.data.forEach((item) => {
       const dateObj = safeParseDatetime(item.datetime);
-      allData.push({
-        'Device ID': item.id_device,
-        'Tanggal': format(dateObj, 'yyyy-MM-dd'),
-        'Waktu': format(dateObj, 'HH:mm:ss'),
-        'Tanggal Lengkap': format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
-        'Suhu (°C)': item.temp,
-        'Kelembaban (%)': item.hum,
-        'Lokasi': device.deviceLocation,
-      });
+      const row = [
+        item.id_device,
+        format(dateObj, 'yyyy-MM-dd'),
+        format(dateObj, 'HH:mm:ss'),
+        format(dateObj, 'yyyy-MM-dd HH:mm:ss'),
+        item.temp,
+        item.hum,
+        device.deviceLocation,
+      ];
+      rows.push(row.join(','));
     });
   });
 
-  // Convert to CSV
-  const ws = XLSX.utils.json_to_sheet(allData);
-  const csv = XLSX.utils.sheet_to_csv(ws);
+  const csv = rows.join('\n');
 
   // Generate file name with timestamp
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
@@ -120,14 +128,14 @@ export const exportToCSV = (data: ExportData[], fileName: string = 'export') => 
   }
 };
 
-export const exportData = (
+export const exportData = async (
   data: ExportData[],
-  format: ExportFormat,
+  formatType: ExportFormat,
   fileName: string = 'sensor-data'
 ) => {
-  if (format === 'excel') {
-    exportToExcel(data, fileName);
-  } else if (format === 'csv') {
+  if (formatType === 'excel') {
+    await exportToExcel(data, fileName);
+  } else if (formatType === 'csv') {
     exportToCSV(data, fileName);
   }
 };

@@ -35,7 +35,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
  * Automatically subscribes when user is authenticated.
  */
 export function usePushSubscription() {
-    const { token, isAuthenticated } = useAuth();
+    const { token, isAuthenticated, isGuest } = useAuth();
     const [state, setState] = useState<PushSubscriptionState>({
         isSubscribed: false,
         isSupported: false,
@@ -72,7 +72,7 @@ export function usePushSubscription() {
     // Get VAPID public key from backend
     const getVapidPublicKey = useCallback(async (): Promise<string | null> => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
             const response = await fetch(`${API_URL}/notifications/vapid-public-key`);
             const data = await response.json();
 
@@ -92,7 +92,7 @@ export function usePushSubscription() {
         authToken: string
     ): Promise<boolean> => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
             const response = await fetch(`${API_URL}/notifications/subscribe`, {
                 method: 'POST',
                 headers: {
@@ -220,13 +220,13 @@ export function usePushSubscription() {
         }
     }, []);
 
-    // Auto-subscribe when authenticated
+    // Auto-subscribe when authenticated (but NOT for guests)
     useEffect(() => {
-        if (isAuthenticated && token && state.isSupported && !hasSubscribed.current) {
+        if (isAuthenticated && !isGuest && token && state.isSupported && !hasSubscribed.current) {
             hasSubscribed.current = true;
             subscribe();
         }
-    }, [isAuthenticated, token, state.isSupported, subscribe]);
+    }, [isAuthenticated, isGuest, token, state.isSupported, subscribe]);
 
     return {
         ...state,

@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Droplets, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Droplets, Eye, EyeOff, Loader2, UserCircle } from 'lucide-react';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login, isLoading: authLoading } = useAuth();
+    const { login, loginAsGuest, isLoading: authLoading } = useAuth();
     
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGuestLoading, setIsGuestLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: FormEvent) => {
@@ -143,6 +144,41 @@ export default function LoginPage() {
                                 </>
                             ) : (
                                 'Masuk'
+                            )}
+                        </Button>
+
+                        {/* Divider */}
+                        <div className="relative my-4">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white px-2 text-gray-400">atau</span>
+                            </div>
+                        </div>
+
+                        {/* Guest Login Button */}
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setIsGuestLoading(true);
+                                loginAsGuest();
+                                router.push('/');
+                            }}
+                            disabled={isSubmitting || isGuestLoading}
+                            className="w-full h-11 border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                            {isGuestLoading ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Memproses...
+                                </>
+                            ) : (
+                                <>
+                                    <UserCircle className="h-4 w-4 mr-2" />
+                                    Masuk sebagai Tamu
+                                </>
                             )}
                         </Button>
                     </form>

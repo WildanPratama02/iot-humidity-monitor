@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Users, LogOut, Shield, MapPin, ChevronRight } from 'lucide-react';
+import { Users, LogOut, Shield, MapPin, ChevronRight, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -15,7 +15,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ className = '' }: UserMenuProps) {
-    const { user, logout, isAdmin } = useAuth();
+    const { user, logout, isAdmin, isGuest } = useAuth();
 
     if (!user) return null;
 
@@ -25,10 +25,12 @@ export function UserMenu({ className = '' }: UserMenuProps) {
             <div className="p-3 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        isAdmin ? 'bg-purple-100' : 'bg-blue-100'
+                        isAdmin ? 'bg-purple-100' : isGuest ? 'bg-gray-100' : 'bg-blue-100'
                     }`}>
                         {isAdmin ? (
                             <Shield className="h-4 w-4 text-purple-600" />
+                        ) : isGuest ? (
+                            <UserCircle className="h-4 w-4 text-gray-600" />
                         ) : (
                             <MapPin className="h-4 w-4 text-blue-600" />
                         )}
@@ -38,7 +40,7 @@ export function UserMenu({ className = '' }: UserMenuProps) {
                             {user.username}
                         </p>
                         <p className="text-xs text-gray-500">
-                            {isAdmin ? 'Administrator' : `PIC: ${user.assignedLocation}`}
+                            {isAdmin ? 'Administrator' : isGuest ? 'Mode Tamu' : `PIC: ${user.assignedLocation}`}
                         </p>
                     </div>
                 </div>
@@ -79,13 +81,13 @@ export function UserMenu({ className = '' }: UserMenuProps) {
 export function useFilteredLocations<T extends { locationName: string }>(
     locations: T[]
 ): T[] {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, isGuest } = useAuth();
 
     return useMemo(() => {
         if (!user) return locations;
         
-        // Admin sees all locations
-        if (isAdmin) return locations;
+        // Admin and Guest see all locations
+        if (isAdmin || isGuest) return locations;
 
         // PIC sees only assigned location
         if (user.role === 'pic' && user.assignedLocation) {
@@ -93,14 +95,14 @@ export function useFilteredLocations<T extends { locationName: string }>(
         }
 
         return locations;
-    }, [locations, user, isAdmin]);
+    }, [locations, user, isAdmin, isGuest]);
 }
 
 /**
  * Get welcome message based on user role
  */
 export function useWelcomeMessage(): string {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, isGuest } = useAuth();
 
     return useMemo(() => {
         if (!user) return '';
@@ -109,6 +111,10 @@ export function useWelcomeMessage(): string {
             return 'Anda login sebagai Administrator. Anda dapat melihat semua lokasi.';
         }
 
+        if (isGuest) {
+            return 'Anda login sebagai Tamu. Anda dapat melihat semua lokasi tanpa notifikasi.';
+        }
+
         return `Anda login sebagai PIC untuk lokasi: ${user.assignedLocation}`;
-    }, [user, isAdmin]);
+    }, [user, isAdmin, isGuest]);
 }

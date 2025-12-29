@@ -118,7 +118,7 @@ export function ExportDialog({ children }: ExportDialogProps) {
     }));
 
     // Export data
-    exportData(
+    await exportData(
       exportDataArray,
       exportFormat,
       `iot-data-${selectedLocation === 'all' ? 'all-locations' : selectedLocation}`

@@ -6,7 +6,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 export interface User {
     id: number;
     username: string;
-    role: 'admin' | 'pic';
+    role: 'admin' | 'pic' | 'guest';
     assignedLocation: string | null;
 }
 
@@ -16,9 +16,11 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (username: string, password: string) => Promise<{ success: boolean; message: string }>;
+    loginAsGuest: () => void;
     logout: () => void;
     isAdmin: boolean;
     isPIC: boolean;
+    isGuest: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,16 +125,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
     }, []);
 
+    const loginAsGuest = useCallback(() => {
+        // Create a guest user without API call
+        const guestUser: User = {
+            id: 0,
+            username: 'Tamu',
+            role: 'guest',
+            assignedLocation: null, // Guest can access all locations
+        };
+
+        // Use a placeholder token for guest (not a real JWT)
+        const guestToken = 'guest-session';
+
+        localStorage.setItem(TOKEN_KEY, guestToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(guestUser));
+
+        setToken(guestToken);
+        setUser(guestUser);
+    }, []);
+
     const value = useMemo(() => ({
         user,
         token,
         isAuthenticated: !!token && !!user,
         isLoading,
         login,
+        loginAsGuest,
         logout,
         isAdmin: user?.role === 'admin',
         isPIC: user?.role === 'pic',
-    }), [user, token, isLoading, login, logout]);
+        isGuest: user?.role === 'guest',
+    }), [user, token, isLoading, login, loginAsGuest, logout]);
 
     return (
         <AuthContext.Provider value={value}>
