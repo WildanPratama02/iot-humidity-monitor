@@ -11,6 +11,7 @@ const cors = require('cors');
 const authController = require('./controllers/authController');
 const dataController = require('./controllers/dataController');
 const notificationController = require('./controllers/notificationController');
+const deviceController = require('./controllers/deviceController');
 
 // Import middleware
 const { verifyToken, verifyAdmin, optionalToken } = require('./middleware/auth');
@@ -85,6 +86,12 @@ app.post('/notifications/subscribe', verifyToken, notificationController.saveSub
 app.post('/users', verifyToken, verifyAdmin, authController.register);
 app.get('/users', verifyToken, verifyAdmin, authController.getAllUsers);
 app.delete('/users/:id', verifyToken, verifyAdmin, authController.deleteUser);
+
+// Device management
+app.get('/admin/devices', verifyToken, verifyAdmin, deviceController.getAllDevices);
+app.post('/admin/devices', verifyToken, verifyAdmin, deviceController.createDevice);
+app.put('/admin/devices/:id', verifyToken, verifyAdmin, deviceController.updateDevice);
+app.delete('/admin/devices/:id', verifyToken, verifyAdmin, deviceController.deleteDevice);
 
 // Get all locations (admin can see all)
 app.get('/locations', verifyToken, dataController.getAllLocations);

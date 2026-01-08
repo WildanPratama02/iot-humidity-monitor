@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Users, LogOut, Shield, MapPin, ChevronRight, UserCircle } from 'lucide-react';
+import { Users, LogOut, Shield, MapPin, ChevronRight, UserCircle, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -54,6 +54,17 @@ export function UserMenu({ className = '' }: UserMenuProps) {
                 >
                     <Users className="h-4 w-4" />
                     <span>Manajemen User</span>
+                    <ChevronRight className="h-4 w-4 ml-auto" />
+                </Link>
+            )}
+            
+            {isAdmin && (
+                <Link
+                    href="/admin/devices"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                    <Cpu className="h-4 w-4" />
+                    <span>Manajemen Device</span>
                     <ChevronRight className="h-4 w-4 ml-auto" />
                 </Link>
             )}
