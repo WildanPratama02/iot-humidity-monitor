@@ -165,8 +165,8 @@ const startServer = () => {
 ============================================
 🔐 IoT Humidity Monitor Backend
 ============================================
-🌐 HTTPS (Browsers): https://192.168.43.175:${HTTPS_PORT}
-📡 HTTP  (IoT):      http://192.168.43.175:${HTTP_PORT}
+🌐 HTTPS (Browsers): https://192.168.40.193:${HTTPS_PORT}
+📡 HTTP  (IoT):      http://192.168.40.193:${HTTP_PORT}
 📅 Started at: ${new Date().toISOString()}
 ============================================
             `);
@@ -177,7 +177,7 @@ const startServer = () => {
 🚀 IoT Humidity Monitor Backend (HTTP Only)
 ============================================
 ⚠️  SSL Certificates not found in ./ssl
-🌐 Server running on http://192.168.43.175:${HTTP_PORT}
+🌐 Server running on http://192.168.40.193:${HTTP_PORT}
 📅 Started at: ${new Date().toISOString()}
 ============================================
         `);
