@@ -5,7 +5,7 @@ module.exports = {
   apps: [
     {
       name: 'iot-frontend',
-      cwd: '/var/www/iot-humidity-monitor',
+      cwd: '/home/ftp_iot/ftp/upload/iot-humidity-monitor',
       script: 'npm',
       args: 'start',
       env: {
@@ -22,7 +22,7 @@ module.exports = {
     },
     {
       name: 'iot-backend',
-      cwd: '/var/www/iot-humidity-monitor/backend',
+      cwd: '/home/ftp_iot/ftp/upload/iot-humidity-monitor/backend',
       script: 'src/index.js',
       env: {
         NODE_ENV: 'production'

@@ -2,11 +2,11 @@ import axios from 'axios';
 import { DeviceFromAPI, SensorDataFromAPI } from '@/types/api';
 
 // Pastikan .env.local memiliki: NEXT_PUBLIC_API_URL=https://192.168.43.175:8090
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://192.168.43.175:8090';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://192.168.40.193:8090';
 
 const TOKEN_KEY = 'iot_auth_token';
 
-export const api = axios.create({
+export const api = axios.create({ 
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
