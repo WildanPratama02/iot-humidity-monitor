@@ -10,7 +10,7 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;
-const HOST = process.env.HOST || '192.168.40.193';
+const HOST = process.env.HOST || '192.168.43.175';
 
 // SSL certificates
 const httpsOptions = {

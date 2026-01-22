@@ -18,15 +18,18 @@ const SALT_ROUNDS = 10;
  */
 const login = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password: encodedPassword } = req.body;
 
         // Validate input
-        if (!username || !password) {
+        if (!username || !encodedPassword) {
             return res.status(400).json({
                 success: false,
                 message: 'Username dan password harus diisi'
             });
         }
+
+        // Decode password from Base64
+        const password = Buffer.from(encodedPassword, 'base64').toString('utf-8');
 
         // Find user by username
         const result = await pool.query(

@@ -80,12 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
             
+            // Encode password with Base64 to hide plain text in network requests
+            const encodedPassword = btoa(password);
+            
             const response = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, password: encodedPassword }),
             });
 
             const data = await response.json();
