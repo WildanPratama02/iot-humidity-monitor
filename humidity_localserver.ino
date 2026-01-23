@@ -12,11 +12,18 @@ const char *ssid = "PWJ Arduino";
 const char *password = "2024P@rduin0";
 
 // -----------------------
-// Local Server API
+// Local Server API (Server 1)
 // -----------------------
-const char *serverURL = "192.168.43.175";
-const int portLocal = 8091; // HTTP port for IoT devices (HTTPS is on 8090)
-const char *endpointLocal = "/data";
+const char *serverURL1 = "192.168.43.175";
+const int portServer1 = 8091;
+const char *endpointServer1 = "/data";
+
+// -----------------------
+// Local Server API (Server 2)
+// -----------------------
+const char *serverURL2 = "192.168.40.193";
+const int portServer2 = 8091;
+const char *endpointServer2 = "/data";
 
 // -----------------------
 // Device Configuration
@@ -81,6 +88,38 @@ String getTimestamp() {
 }
 
 // -----------------------
+// Send Data to Server (Helper Function)
+// -----------------------
+void sendToServer(const char *server, int port, const char *endpoint,
+                  String jsonData, const char *serverName) {
+  HTTPClient http;
+  WiFiClient client;
+
+  String fullURL =
+      "http://" + String(server) + ":" + String(port) + String(endpoint);
+
+  Serial.print("[");
+  Serial.print(serverName);
+  Serial.print("] Connecting to: ");
+  Serial.println(fullURL);
+
+  http.begin(client, fullURL);
+  http.addHeader("Content-Type", "application/json");
+
+  int httpCode = http.POST(jsonData);
+
+  if (httpCode > 0) {
+    Serial.printf("[%s] Response [%d]: ", serverName, httpCode);
+    Serial.println(http.getString());
+  } else {
+    Serial.printf("[%s] POST failed: %s\n", serverName,
+                  http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+}
+
+// -----------------------
 // Main Loop
 // -----------------------
 void loop() {
@@ -99,45 +138,33 @@ void loop() {
   String timeNow = getTimestamp();
 
   // -----------------------
-  // SEND POST JSON
+  // Create JSON payload
+  // -----------------------
+  StaticJsonDocument<250> doc;
+  doc["id_device"] = DEVICE_ID;
+  doc["temp"] = temp;
+  doc["hum"] = hum;
+  doc["datetime"] = timeNow;
+
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  Serial.println("=== Sensor Data ===");
+  Serial.println(jsonString);
+
+  // -----------------------
+  // SEND TO BOTH SERVERS
   // -----------------------
   if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    WiFiClient client;
+    // Kirim ke Server 1
+    sendToServer(serverURL1, portServer1, endpointServer1, jsonString,
+                 "Server1");
 
-    // Build full URL
-    String fullURL = "http://" + String(serverURL) + ":" + String(portLocal) +
-                     String(endpointLocal);
-
-    Serial.print("Connecting to: ");
-    Serial.println(fullURL);
-
-    http.begin(client, fullURL);
-    http.addHeader("Content-Type", "application/json");
-
-    // Create JSON payload
-    StaticJsonDocument<250> doc;
-    doc["id_device"] = DEVICE_ID;
-    doc["temp"] = temp;
-    doc["hum"] = hum;
-    doc["datetime"] = timeNow;
-
-    String jsonString;
-    serializeJson(doc, jsonString);
-
-    Serial.println("Sending JSON:");
-    Serial.println(jsonString);
-
-    int httpCode = http.POST(jsonString);
-
-    if (httpCode > 0) {
-      Serial.printf("Server Response [%d]: ", httpCode);
-      Serial.println(http.getString());
-    } else {
-      Serial.printf("POST failed: %s\n", http.errorToString(httpCode).c_str());
-    }
-
-    http.end();
+    // Kirim ke Server 2
+    sendToServer(serverURL2, portServer2, endpointServer2, jsonString,
+                 "Server2");
+  } else {
+    Serial.println("WiFi not connected!");
   }
 
   delay(60000); // Kirim setiap 1 menit
