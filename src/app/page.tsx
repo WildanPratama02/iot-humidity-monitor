@@ -7,7 +7,8 @@ import { getDeviceStatus, DeviceStatus } from '@/hooks/useDeviceStatus';
 import { Sidebar } from '@/components/Sidebar';
 import { DeviceGrid } from '@/components/DeviceGrid';
 import { StatusBadge } from '@/components/StatusIndicator';
-import { Menu, Search, MapPin, X, Download } from 'lucide-react';
+import { Menu, Search, MapPin, X, Download, FileText } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -274,6 +275,16 @@ function DashboardContent() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Daily Report Link - Desktop Only */}
+                <div className="p-3 lg:p-4 border-t border-gray-200 bg-blue-50">
+                  <Link href="/report">
+                    <Button variant="outline" className="w-full gap-2 bg-white hover:bg-blue-100 border-blue-200">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      <span className="text-blue-700">Daily Report</span>
+                    </Button>
+                  </Link>
                 </div>
 
                 {/* Export Button - Desktop Only */}

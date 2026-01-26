@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, MapPin, X, Download } from 'lucide-react';
+import { Search, MapPin, X, Download, FileText } from 'lucide-react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -221,6 +222,16 @@ export function Sidebar({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Daily Report Link - Mobile Only */}
+      <div className="flex-shrink-0 p-3 lg:p-4 border-t border-gray-200 bg-blue-50 lg:hidden">
+        <Link href="/report">
+          <Button variant="outline" className="w-full gap-2 bg-white hover:bg-blue-100 border-blue-200">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <span className="text-blue-700">Daily Report</span>
+          </Button>
+        </Link>
       </div>
 
       {/* Export Button - Mobile Only */}

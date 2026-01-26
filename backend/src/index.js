@@ -142,18 +142,46 @@ const https = require('https');
 const http = require('http');
 
 const startServer = () => {
-    // Run HTTP only - NGINX handles SSL termination
-    http.createServer(app).listen(PORT, '0.0.0.0', () => {
+    const sslPath = './ssl';
+    const hasSSL = fs.existsSync(`${sslPath}/server.key`) && fs.existsSync(`${sslPath}/server.crt`);
+
+    const HTTPS_PORT = PORT;        // 8090 for browsers
+    const HTTP_PORT = PORT + 1;     // 8091 for IoT devices
+
+    // Always start HTTP server for IoT devices
+    http.createServer(app).listen(HTTP_PORT, '0.0.0.0', () => {
+        console.log(`📡 HTTP Server for IoT devices on http://0.0.0.0:${HTTP_PORT}`);
+    });
+
+    // Start HTTPS server if certificates exist (for browsers)
+    if (hasSSL) {
+        const httpsOptions = {
+            key: fs.readFileSync(`${sslPath}/server.key`),
+            cert: fs.readFileSync(`${sslPath}/server.crt`)
+        };
+
+        https.createServer(httpsOptions, app).listen(HTTPS_PORT, '0.0.0.0', () => {
+            console.log(`
+============================================
+🔐 IoT Humidity Monitor Backend
+============================================
+🌐 HTTPS (Browsers): https://192.168.40.193:${HTTPS_PORT}
+📡 HTTP  (IoT):      http://192.168.40.193:${HTTP_PORT}
+📅 Started at: ${new Date().toISOString()}
+============================================
+            `);
+        });
+    } else {
         console.log(`
 ============================================
-🚀 IoT Humidity Monitor Backend
+🚀 IoT Humidity Monitor Backend (HTTP Only)
 ============================================
-🌐 HTTP Server: http://0.0.0.0:${PORT}
-📡 Ready for NGINX reverse proxy
+⚠️  SSL Certificates not found in ./ssl
+🌐 Server running on http://192.168.40.193:${HTTP_PORT}
 📅 Started at: ${new Date().toISOString()}
 ============================================
         `);
-    });
+    }
 };
 
 startServer();
