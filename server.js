@@ -1,8 +1,6 @@
-const { createServer } = require('https');
+const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
-const fs = require('fs');
-const path = require('path');
 
 // Detect mode from NODE_ENV
 const dev = process.env.NODE_ENV !== 'production';
@@ -10,16 +8,10 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;
-const HOST = process.env.HOST || '192.168.43.175';
-
-// SSL certificates
-const httpsOptions = {
-    key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.crt'))
-};
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.prepare().then(() => {
-    createServer(httpsOptions, (req, res) => {
+    createServer((req, res) => {
         const parsedUrl = parse(req.url, true);
         handle(req, res, parsedUrl);
     }).listen(PORT, HOST, (err) => {
@@ -27,9 +19,10 @@ app.prepare().then(() => {
         const mode = dev ? 'DEVELOPMENT' : 'PRODUCTION';
         console.log(`
 ============================================
-🔒 IoT Frontend (HTTPS) - ${mode}
+🚀 IoT Frontend - ${mode}
 ============================================
-🌐 URL: https://${HOST}:${PORT}
+🌐 URL: http://${HOST}:${PORT}
+🔗 Domain: ${dev ? 'localhost' : 'https://iot-humidity.qdms.web.id'}
 📦 Mode: ${mode}
 🔄 Hot Reload: ${dev ? 'Enabled' : 'Disabled'}
 ============================================

@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === 'production';
+const backendUrl = isProduction
+  ? 'http://localhost:8091'  // Production: backend on same server via NGINX
+  : 'http://localhost:8091'; // Development: local backend
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: [
+    "iot-humidity.qdms.web.id",
+    "192.168.40.193",
     "192.168.43.175",
     "localhost",
   ],
@@ -9,35 +16,35 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8091/:path*', // Proxy to Backend
+        destination: `${backendUrl}/:path*`, // Proxy to Backend
       },
       {
         source: '/notifications/:path*',
-        destination: 'http://localhost:8091/notifications/:path*',
+        destination: `${backendUrl}/notifications/:path*`,
       },
       {
         source: '/auth/:path*',
-        destination: 'http://localhost:8091/auth/:path*',
+        destination: `${backendUrl}/auth/:path*`,
       },
       {
         source: '/data/:path*',
-        destination: 'http://localhost:8091/data/:path*',
+        destination: `${backendUrl}/data/:path*`,
       },
       {
         source: '/devices',
-        destination: 'http://localhost:8091/devices',
+        destination: `${backendUrl}/devices`,
       },
       {
         source: '/users/:path*',
-        destination: 'http://localhost:8091/users/:path*',
+        destination: `${backendUrl}/users/:path*`,
       },
       {
         source: '/locations',
-        destination: 'http://localhost:8091/locations',
+        destination: `${backendUrl}/locations`,
       },
       {
         source: '/health',
-        destination: 'http://localhost:8091/health',
+        destination: `${backendUrl}/health`,
       },
     ];
   },
