@@ -13,7 +13,7 @@ module.exports = {
     {
       name: 'iot-frontend',
       script: 'server.js',
-      cwd: '/var/www/iot-humidity-monitor',
+      cwd: '/var/www/iot-humidity',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
@@ -33,7 +33,7 @@ module.exports = {
     {
       name: 'iot-backend',
       script: 'src/index.js',
-      cwd: '/var/www/iot-humidity-monitor/backend',
+      cwd: '/var/www/iot-humidity/backend',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
