@@ -48,7 +48,7 @@ function DeviceManagementContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
     const fetchDevices = useCallback(async () => {
         try {

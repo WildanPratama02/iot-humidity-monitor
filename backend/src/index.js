@@ -140,17 +140,15 @@ app.use((error, req, res, next) => {
 const http = require('http');
 
 const startServer = () => {
-    const HTTP_PORT = parseInt(process.env.PORT, 10) || 8091;
-
     // Start HTTP server (NGINX handles SSL termination in production)
-    http.createServer(app).listen(HTTP_PORT, '0.0.0.0', () => {
+    http.createServer(app).listen(PORT, '0.0.0.0', () => {
         const isProduction = process.env.NODE_ENV === 'production';
         console.log(`
 ============================================
 🔐 IoT Humidity Monitor Backend${isProduction ? ' - PRODUCTION' : ''}
 ============================================
-📡 HTTP Server:  http://0.0.0.0:${HTTP_PORT}
-🌐 Domain:       ${isProduction ? 'https://iot-humidity.qdms.web.id/api' : 'http://localhost:' + HTTP_PORT}
+📡 HTTP Server:  http://0.0.0.0:${PORT}
+🌐 Domain:       ${isProduction ? 'https://iot-humidity.qdms.web.id/api' : 'http://localhost:' + PORT}
 📅 Started at:   ${new Date().toISOString()}
 ============================================
         `);

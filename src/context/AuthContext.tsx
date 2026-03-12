@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message: string }> => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
             
             // Encode password with Base64 to hide plain text in network requests
             const encodedPassword = btoa(password);

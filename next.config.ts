@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NODE_ENV === 'production';
 const backendUrl = isProduction
   ? 'http://localhost:8091'  // Production: backend on same server via NGINX
-  : 'http://localhost:8091'; // Development: local backend
+  : 'http://localhost:8090'; // Development: local backend
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: [

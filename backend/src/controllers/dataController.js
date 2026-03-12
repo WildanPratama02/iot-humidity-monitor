@@ -158,7 +158,7 @@ const getDataByDevice = async (req, res) => {
 const getAllDevices = async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT id_device, location, detil_location, mac_address FROM tb_device ORDER BY location'
+            "SELECT id_device, location, detil_location, mac_address FROM tb_device WHERE id_device != 'B1MT01' ORDER BY location"
         );
 
         res.json(result.rows);
@@ -180,7 +180,7 @@ const getAllDevices = async (req, res) => {
 const getAllLocations = async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT DISTINCT location FROM tb_device ORDER BY location'
+            "SELECT DISTINCT location FROM tb_device WHERE id_device != 'B1MT01' ORDER BY location"
         );
 
         res.json({
