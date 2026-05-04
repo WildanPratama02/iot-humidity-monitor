@@ -61,7 +61,7 @@ export const LOCATION_DATA: Record<string, LocationData> = {
   },
   "FGWH F6": {
     locationName: "FGWH F6",
-    actionPlanUrl: "https://forms.gle/prmxhWwX5oSA3dgE7",
+    actionPlanUrl: "https://forms.gle/DCLJLsy1SvqT9Fnb8",
     summaryPlanUrl: "https://docs.google.com/spreadsheets/d/1-wL-Y1YalrFpr6lWdJGWUjfYJqx-BWFtY1WkcqKZ2JQ/edit?usp=sharing",
     qrActionPath: "/assets/location/FGWH F6/QR Action.png",
     qrSummaryPath: "/assets/location/FGWH F6/QR Summary.png",

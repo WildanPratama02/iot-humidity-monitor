@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { type LocationData, encodeImagePath, getImageCacheKey } from "../lib/locationData";
 
@@ -61,15 +60,13 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                       <p className="text-sm text-gray-500">QR Code Tidak Tersedia</p>
                     </div>
                   ) : (
-                    <Image
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
                       key={`qr-action-${cacheKey}`}
                       src={encodeImagePath(locationData.qrActionPath)}
                       alt="QR Action Plan"
-                      fill
-                      className="object-contain rounded-lg p-2"
+                      className="absolute inset-0 w-full h-full object-contain rounded-lg p-2"
                       onError={() => handleImageError("qrAction")}
-                      priority
-                      unoptimized
                     />
                   )}
                 </div>
@@ -107,15 +104,13 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                       <p className="text-sm text-gray-500">QR Code Tidak Tersedia</p>
                     </div>
                   ) : (
-                    <Image
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
                       key={`qr-summary-${cacheKey}`}
                       src={encodeImagePath(locationData.qrSummaryPath)}
                       alt="QR Summary Action Plan"
-                      fill
-                      className="object-contain rounded-lg p-2"
+                      className="absolute inset-0 w-full h-full object-contain rounded-lg p-2"
                       onError={() => handleImageError("qrSummary")}
-                      priority
-                      unoptimized
                     />
                   )}
                 </div>
@@ -200,18 +195,15 @@ export function SOPSection({ locationData }: SOPSectionProps) {
               </div>
             ) : (
               <div className="rounded-xl overflow-hidden">
-              <Image
-                key={`sop-${cacheKey}`}
-                src={encodeImagePath(locationData.sopImagePath)}
-                alt="Standard Operating Procedure"
-                width={800}
-                height={600}
-                className="w-full h-auto"
-                onError={() => handleImageError("sop")}
-                priority
-                unoptimized
-              />
-            </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={`sop-${cacheKey}`}
+                  src={encodeImagePath(locationData.sopImagePath)}
+                  alt="Standard Operating Procedure"
+                  className="w-full h-auto"
+                  onError={() => handleImageError("sop")}
+                />
+              </div>
             )}
           </div>
         </div>

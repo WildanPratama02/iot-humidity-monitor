@@ -85,28 +85,11 @@ export function UserMenu({ className = '' }: UserMenuProps) {
     );
 }
 
-/**
- * Hook to filter locations based on user role
- * Admin sees all locations, PIC sees only assigned location
- */
 export function useFilteredLocations<T extends { locationName: string }>(
     locations: T[]
 ): T[] {
-    const { user, isAdmin, isGuest } = useAuth();
-
-    return useMemo(() => {
-        if (!user) return locations;
-        
-        // Admin and Guest see all locations
-        if (isAdmin || isGuest) return locations;
-
-        // PIC sees only assigned location
-        if (user.role === 'pic' && user.assignedLocation) {
-            return locations.filter(loc => loc.locationName === user.assignedLocation);
-        }
-
-        return locations;
-    }, [locations, user, isAdmin, isGuest]);
+    // Return all locations without exception / hiding any devices
+    return locations;
 }
 
 /**

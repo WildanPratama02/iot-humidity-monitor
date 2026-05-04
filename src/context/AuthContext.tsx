@@ -15,9 +15,11 @@ interface AuthContextType {
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<{ success: boolean; message: string }>;
+    login: (username: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
     loginAsGuest: () => void;
+    loginAsLocation: (location: string, rememberDevice?: boolean) => void;
     logout: () => void;
+    clearDeviceLocation: () => void;
     isAdmin: boolean;
     isPIC: boolean;
     isGuest: boolean;
@@ -27,6 +29,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'iot_auth_token';
 const USER_KEY = 'iot_auth_user';
+
+// Key untuk menyimpan lokasi device secara permanen
+const DEVICE_LOCATION_KEY = 'iot_device_location';
 
 /**
  * Decode JWT token payload (without verification - verification happens on backend)
@@ -41,10 +46,16 @@ function decodeToken(token: string): { userId: number; username: string; role: '
     }
 }
 
+// Non-JWT session tokens yang tidak pernah expire
+const NON_JWT_TOKENS = ['location-session', 'guest-session'];
+
 /**
  * Check if token is expired
+ * Non-JWT tokens (location-session, guest-session) tidak pernah expire
  */
 function isTokenExpired(token: string): boolean {
+    // Token non-JWT (location/guest) dianggap selalu valid
+    if (NON_JWT_TOKENS.includes(token)) return false;
     const decoded = decodeToken(token);
     if (!decoded) return true;
     // exp is in seconds, Date.now() is in milliseconds
@@ -64,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedToken && storedUser) {
             // Check if token is expired
             if (isTokenExpired(storedToken)) {
-                // Clear expired token
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(USER_KEY);
             } else {
@@ -76,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
     }, []);
 
-    const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message: string }> => {
+    const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message: string; user?: User }> => {
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
             
@@ -109,7 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             return {
                 success: true,
-                message: 'Login berhasil'
+                message: 'Login berhasil',
+                user: data.user
             };
 
         } catch (error) {
@@ -124,8 +135,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logout = useCallback(() => {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        // TIDAK menghapus DEVICE_LOCATION_KEY agar device mengingat lokasinya
         setToken(null);
         setUser(null);
+    }, []);
+
+    // Fungsi untuk reset pilihan device (ganti lokasi)
+    const clearDeviceLocation = useCallback(() => {
+        localStorage.removeItem(DEVICE_LOCATION_KEY);
     }, []);
 
     const loginAsGuest = useCallback(() => {
@@ -147,6 +164,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(guestUser);
     }, []);
 
+    const loginAsLocation = useCallback((location: string, rememberDevice: boolean = true) => {
+        const picUser: User = {
+            id: 0,
+            username: `PIC ${location}`,
+            role: 'pic',
+            assignedLocation: location,
+        };
+
+        const picToken = 'location-session';
+
+        if (rememberDevice) {
+            // Simpan lokasi secara permanen agar device tidak perlu pilih ulang
+            localStorage.setItem(DEVICE_LOCATION_KEY, location);
+        } else {
+            localStorage.removeItem(DEVICE_LOCATION_KEY);
+        }
+        localStorage.setItem(TOKEN_KEY, picToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(picUser));
+
+        setToken(picToken);
+        setUser(picUser);
+    }, []);
+
     const value = useMemo(() => ({
         user,
         token,
@@ -154,11 +194,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         loginAsGuest,
+        loginAsLocation,
         logout,
+        clearDeviceLocation,
         isAdmin: user?.role === 'admin',
         isPIC: user?.role === 'pic',
         isGuest: user?.role === 'guest',
-    }), [user, token, isLoading, login, loginAsGuest, logout]);
+    }), [user, token, isLoading, login, loginAsGuest, loginAsLocation, logout, clearDeviceLocation]);
 
     return (
         <AuthContext.Provider value={value}>

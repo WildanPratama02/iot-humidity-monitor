@@ -11,7 +11,7 @@ const pool = require('../config/database');
 const getAllDevices = async (req, res) => {
     try {
         const result = await pool.query(
-            "SELECT * FROM tb_device WHERE id_device != 'B1MT01' ORDER BY location"
+            "SELECT * FROM tb_device ORDER BY location"
         );
         res.json({
             success: true,

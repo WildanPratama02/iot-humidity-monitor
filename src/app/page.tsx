@@ -7,7 +7,7 @@ import { getDeviceStatus, DeviceStatus } from '@/hooks/useDeviceStatus';
 import { Sidebar } from '@/components/Sidebar';
 import { DeviceGrid } from '@/components/DeviceGrid';
 import { StatusBadge } from '@/components/StatusIndicator';
-import { Menu, Search, MapPin, X, Download, FileText } from 'lucide-react';
+import { Menu, Search, MapPin, X, Download, FileText, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ type StatusFilter = 'all' | DeviceStatus;
 
 function DashboardContent() {
   // Auth context for role-based filtering
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   // Mengambil data lokasi yang sudah di-grouping dengan status
   const { data: allLocations, latestReadingsMap, isLoading, isError, error } = useLocationsWithStatus();
@@ -47,6 +47,17 @@ function DashboardContent() {
 
   // State untuk menyimpan lokasi mana yang sedang aktif dilihat
   const [activeLocationName, setActiveLocationName] = useState<string | null>(null);
+
+  // Initialize active location from URL parameter if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const locationParam = searchParams.get('location');
+      if (locationParam) {
+        setActiveLocationName(locationParam);
+      }
+    }
+  }, []);
 
   // State untuk sidebar (mobile dan desktop)
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -147,6 +158,10 @@ function DashboardContent() {
   const firstDeviceId = activeLocationData?.devices[0]?.id_device;
   const latestSensorData = firstDeviceId ? latestReadingsMap[firstDeviceId] : null;
 
+  // Determine if sidebar should be shown
+  const isPIC = user?.role === 'pic';
+  const showDesktopSidebar = isDesktopSidebarVisible && !isPIC;
+
   return (
     <>
       {/* Alert System Integration */}
@@ -159,7 +174,7 @@ function DashboardContent() {
         {/* Sidebar and Main Content Container */}
         <div className="flex flex-1">
           {/* Desktop Sidebar - Toggle with state */}
-          {isDesktopSidebarVisible && (
+          {showDesktopSidebar && (
             <div className="hidden lg:block lg:flex-shrink-0">
               <div className="w-80 h-screen bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 z-30">
                 {/* Header with close button for desktop */}
@@ -312,17 +327,19 @@ function DashboardContent() {
           )}
 
           {/* Mobile Sidebar - Fixed positioning */}
-          <Sidebar
-            locations={locations || []}
-            activeLocation={currentSelection ?? null}
-            onSelectLocation={setActiveLocationName}
-            isOpen={isSidebarOpen}
-            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          />
+          {!isPIC && (
+            <Sidebar
+              locations={locations || []}
+              activeLocation={currentSelection ?? null}
+              onSelectLocation={setActiveLocationName}
+              isOpen={isSidebarOpen}
+              onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            />
+          )}
 
           {/* Main Content Area */}
           <main className={`flex-1 p-4 lg:p-6 overflow-y-auto transition-all duration-300 ${
-            isDesktopSidebarVisible ? 'lg:ml-80' : ''
+            showDesktopSidebar ? 'lg:ml-80' : ''
           }`}>
           {/* Main Title Section */}
           <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
@@ -351,20 +368,22 @@ function DashboardContent() {
           <header className="mb-6">
             <div className="flex items-center gap-4 mb-4">
               {/* Menu button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  if (window.innerWidth >= 1024) {
-                    setIsDesktopSidebarVisible(!isDesktopSidebarVisible);
-                  } else {
-                    setIsSidebarOpen(!isSidebarOpen);
-                  }
-                }}
-                className="hover:bg-gray-100"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+              {!isPIC && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (window.innerWidth >= 1024) {
+                      setIsDesktopSidebarVisible(!isDesktopSidebarVisible);
+                    } else {
+                      setIsSidebarOpen(!isSidebarOpen);
+                    }
+                  }}
+                  className="hover:bg-gray-100"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
               <div className="flex-1">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl lg:text-2xl font-bold text-gray-800">
@@ -377,11 +396,26 @@ function DashboardContent() {
                   Total Device: {activeLocationData?.devices.length || 0}
                 </p>
               </div>
-              <ExportDialog>
-                <Button variant="outline" size="sm" className="hidden sm:flex">
-                  Export Data
-                </Button>
-              </ExportDialog>
+              <div className="flex gap-2">
+                <ExportDialog>
+                  <Button variant="outline" size="sm" className="hidden sm:flex">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Data
+                  </Button>
+                </ExportDialog>
+                
+                {isPIC && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => logout()}
+                    className="flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </header>
 

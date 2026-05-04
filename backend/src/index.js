@@ -17,7 +17,7 @@ const deviceController = require('./controllers/deviceController');
 const { verifyToken, verifyAdmin, optionalToken } = require('./middleware/auth');
 
 const app = express();
-const PORT = parseInt(process.env.PORT, 10) || 8090;
+const PORT = parseInt(process.env.PORT, 10) || 8091;
 
 // Middleware
 app.use(cors({
@@ -141,14 +141,15 @@ const http = require('http');
 
 const startServer = () => {
     // Start HTTP server (NGINX handles SSL termination in production)
-    http.createServer(app).listen(PORT, '0.0.0.0', () => {
+    const HOST = process.env.HOST || '0.0.0.0';
+    http.createServer(app).listen(PORT, HOST, () => {
         const isProduction = process.env.NODE_ENV === 'production';
         console.log(`
 ============================================
 🔐 IoT Humidity Monitor Backend${isProduction ? ' - PRODUCTION' : ''}
 ============================================
-📡 HTTP Server:  http://0.0.0.0:${PORT}
-🌐 Domain:       ${isProduction ? 'https://iot-humidity.qdms.web.id/api' : 'http://localhost:' + PORT}
+📡 HTTP Server:  http://${HOST}:${PORT}
+🌐 Domain:       ${isProduction ? 'https://iot-humidity.qdms.web.id/api' : `http://${HOST}:${PORT}`}
 📅 Started at:   ${new Date().toISOString()}
 ============================================
         `);
