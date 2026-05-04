@@ -1,3 +1,22 @@
+/**
+ * Generate cache-busting version string
+ * Updates every hour to balance freshness with caching benefit
+ * Use this as a React key prop to force re-render when image changes
+ */
+export function getImageCacheKey(): string {
+  const now = new Date();
+  // Create version based on date and hour (changes every hour)
+  return `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}`;
+}
+
+/**
+ * Encode image path to handle special characters like & in folder names
+ */
+export function encodeImagePath(path: string): string {
+  // Split by '/', encode each segment, then rejoin
+  return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+}
+
 export interface LocationData {
   locationName: string;
   actionPlanUrl: string;
@@ -42,7 +61,7 @@ export const LOCATION_DATA: Record<string, LocationData> = {
   },
   "FGWH F6": {
     locationName: "FGWH F6",
-    actionPlanUrl: "https://forms.gle/prmxhWwX5oSA3dgE7",
+    actionPlanUrl: "https://forms.gle/DCLJLsy1SvqT9Fnb8",
     summaryPlanUrl: "https://docs.google.com/spreadsheets/d/1-wL-Y1YalrFpr6lWdJGWUjfYJqx-BWFtY1WkcqKZ2JQ/edit?usp=sharing",
     qrActionPath: "/assets/location/FGWH F6/QR Action.png",
     qrSummaryPath: "/assets/location/FGWH F6/QR Summary.png",

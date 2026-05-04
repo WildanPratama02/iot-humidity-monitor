@@ -1,14 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
-import type { LocationData } from "../lib/locationData";
+import { type LocationData, encodeImagePath, getImageCacheKey } from "../lib/locationData";
 
 interface SOPSectionProps {
   locationData: LocationData;
 }
 
 export function SOPSection({ locationData }: SOPSectionProps) {
+  // Cache key for forcing image refresh when files change
+  const cacheKey = getImageCacheKey();
+  
   const [imageError, setImageError] = useState({
     qrAction: false,
     qrSummary: false,
@@ -58,13 +60,13 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                       <p className="text-sm text-gray-500">QR Code Tidak Tersedia</p>
                     </div>
                   ) : (
-                    <Image
-                      src={locationData.qrActionPath}
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={`qr-action-${cacheKey}`}
+                      src={encodeImagePath(locationData.qrActionPath)}
                       alt="QR Action Plan"
-                      fill
-                      className="object-contain rounded-lg p-2"
+                      className="absolute inset-0 w-full h-full object-contain rounded-lg p-2"
                       onError={() => handleImageError("qrAction")}
-                      priority
                     />
                   )}
                 </div>
@@ -102,13 +104,13 @@ export function SOPSection({ locationData }: SOPSectionProps) {
                       <p className="text-sm text-gray-500">QR Code Tidak Tersedia</p>
                     </div>
                   ) : (
-                    <Image
-                      src={locationData.qrSummaryPath}
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={`qr-summary-${cacheKey}`}
+                      src={encodeImagePath(locationData.qrSummaryPath)}
                       alt="QR Summary Action Plan"
-                      fill
-                      className="object-contain rounded-lg p-2"
+                      className="absolute inset-0 w-full h-full object-contain rounded-lg p-2"
                       onError={() => handleImageError("qrSummary")}
-                      priority
                     />
                   )}
                 </div>
@@ -193,16 +195,15 @@ export function SOPSection({ locationData }: SOPSectionProps) {
               </div>
             ) : (
               <div className="rounded-xl overflow-hidden">
-              <Image
-                src={locationData.sopImagePath}
-                alt="Standard Operating Procedure"
-                width={800}
-                height={600}
-                className="w-full h-auto"
-                onError={() => handleImageError("sop")}
-                priority
-              />
-            </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={`sop-${cacheKey}`}
+                  src={encodeImagePath(locationData.sopImagePath)}
+                  alt="Standard Operating Procedure"
+                  className="w-full h-auto"
+                  onError={() => handleImageError("sop")}
+                />
+              </div>
             )}
           </div>
         </div>

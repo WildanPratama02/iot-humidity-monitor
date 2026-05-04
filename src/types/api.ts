@@ -2,6 +2,8 @@
 export interface DeviceFromAPI {
   id_device: string;
   location: string;
+  detil_location?: string;  // Detail lokasi (optional)
+  mac_address?: string;     // MAC Address (optional)
 }
 
 // Tipe data mentah dari API (Sesuai tb_data)
