@@ -17,14 +17,26 @@ import {
     Loader2,
     X,
     MapPin,
-    Wifi
+    Wifi,
+    FileSpreadsheet,
+    Activity
 } from 'lucide-react';
+import ExcelJS from 'exceljs';
+import { format } from 'date-fns';
 
 interface Device {
     id_device: string;
     location: string;
     detil_location: string;
     mac_address: string;
+    last_seen: string | null;
+    is_active: boolean;
+}
+
+function getDeviceStatus(device: Device): { label: string; isActive: boolean } {
+    return device.is_active
+        ? { label: 'Active', isActive: true }
+        : { label: 'Offline', isActive: false };
 }
 
 function DeviceManagementContent() {
@@ -47,6 +59,7 @@ function DeviceManagementContent() {
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -163,6 +176,104 @@ function DeviceManagementContent() {
         }
     };
 
+    const handleExportExcel = async () => {
+        if (devices.length === 0) {
+            alert('Tidak ada data device untuk di-export');
+            return;
+        }
+
+        setIsExporting(true);
+        try {
+            const wb = new ExcelJS.Workbook();
+            wb.creator = 'IoT Humidity Monitor';
+            wb.created = new Date();
+
+            const ws = wb.addWorksheet('Data Device');
+
+            // Define columns
+            ws.columns = [
+                { header: 'No', key: 'no', width: 6 },
+                { header: 'ID Device', key: 'id_device', width: 18 },
+                { header: 'Lokasi', key: 'location', width: 25 },
+                { header: 'Detail Lokasi', key: 'detil_location', width: 30 },
+                { header: 'MAC Address', key: 'mac_address', width: 22 },
+                { header: 'Status', key: 'status', width: 12 },
+            ];
+
+            // Style header row
+            const headerRow = ws.getRow(1);
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF2563EB' },
+            };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+            headerRow.height = 24;
+
+            // Add data rows
+            devices.forEach((device, index) => {
+                const status = getDeviceStatus(device);
+                const row = ws.addRow({
+                    no: index + 1,
+                    id_device: device.id_device,
+                    location: device.location,
+                    detil_location: device.detil_location || '-',
+                    mac_address: device.mac_address || '-',
+                    status: status.label,
+                });
+                row.alignment = { vertical: 'middle' };
+                // Alternate row coloring for readability
+                if (index % 2 === 1) {
+                    row.eachCell((cell) => {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFF3F4F6' },
+                        };
+                    });
+                }
+            });
+
+            // Add borders to all cells
+            const borderStyle: Partial<ExcelJS.Borders> = {
+                top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+            };
+            ws.eachRow((row) => {
+                row.eachCell((cell) => {
+                    cell.border = borderStyle;
+                });
+            });
+
+            // Generate filename with timestamp
+            const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+            const fileName = `Data_Device_${timestamp}.xlsx`;
+
+            // Download file
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export error:', err);
+            alert('Gagal mengexport data device');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -193,13 +304,33 @@ function DeviceManagementContent() {
                                 <p className="text-sm text-gray-500">Kelola sensor dan lokasi device</p>
                             </div>
                         </div>
-                        <Button
-                            onClick={handleOpenAdd}
-                            className="gap-2 bg-blue-600 hover:bg-blue-700"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Tambah Device
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                onClick={handleExportExcel}
+                                disabled={isExporting || devices.length === 0}
+                                variant="outline"
+                                className="gap-2 border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800"
+                            >
+                                {isExporting ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileSpreadsheet className="h-4 w-4" />
+                                        Export Excel
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                onClick={handleOpenAdd}
+                                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Tambah Device
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -213,7 +344,7 @@ function DeviceManagementContent() {
                 )}
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <Card className="p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -238,6 +369,32 @@ function DeviceManagementContent() {
                             </div>
                         </div>
                     </Card>
+                    <Card className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                <Activity className="h-5 w-5 text-emerald-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Device Active</p>
+                                <p className="text-2xl font-bold text-emerald-600">
+                                    {devices.filter(d => getDeviceStatus(d).isActive).length}
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                    <Card className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                <Activity className="h-5 w-5 text-red-500" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Device Offline</p>
+                                <p className="text-2xl font-bold text-red-500">
+                                    {devices.filter(d => !getDeviceStatus(d).isActive).length}
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
                 </div>
 
                 {/* Devices Table */}
@@ -257,6 +414,9 @@ function DeviceManagementContent() {
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         MAC Address
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status
                                     </th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Aksi
@@ -289,6 +449,23 @@ function DeviceManagementContent() {
                                                 <span className="text-sm font-mono text-gray-600">{device.mac_address || '-'}</span>
                                             </div>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {(() => {
+                                                const status = getDeviceStatus(device);
+                                                return (
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                                        status.isActive 
+                                                            ? 'bg-emerald-100 text-emerald-700' 
+                                                            : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                        <span className={`w-2 h-2 rounded-full ${
+                                                            status.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+                                                        }`} />
+                                                        {status.label}
+                                                    </span>
+                                                );
+                                            })()}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button
@@ -313,7 +490,7 @@ function DeviceManagementContent() {
                                 ))}
                                 {devices.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                             Belum ada data device
                                         </td>
                                     </tr>

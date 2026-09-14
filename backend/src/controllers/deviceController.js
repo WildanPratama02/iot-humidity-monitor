@@ -11,7 +11,15 @@ const pool = require('../config/database');
 const getAllDevices = async (req, res) => {
     try {
         const result = await pool.query(
-            "SELECT * FROM tb_device ORDER BY location"
+            `SELECT d.*, 
+                    (SELECT MAX(datetime) FROM tb_data WHERE id_device = d.id_device) as last_seen,
+                    CASE 
+                        WHEN (SELECT MAX(datetime) FROM tb_data WHERE id_device = d.id_device) >= NOW() - INTERVAL '10 minutes'
+                        THEN true
+                        ELSE false
+                    END as is_active
+             FROM tb_device d 
+             ORDER BY d.location`
         );
         res.json({
             success: true,
