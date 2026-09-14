@@ -11,13 +11,14 @@ const pool = require('../config/database');
 const getAllDevices = async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT d.*, 
-                    (SELECT MAX(datetime) FROM tb_data WHERE id_device = d.id_device) as last_seen,
-                    CASE 
-                        WHEN (SELECT MAX(datetime) FROM tb_data WHERE id_device = d.id_device) >= NOW() - INTERVAL '10 minutes'
-                        THEN true
-                        ELSE false
-                    END as is_active
+            `SELECT d.id_device, d.location, d.detil_location, d.mac_address,
+                    (
+                        SELECT datetime 
+                        FROM tb_data 
+                        WHERE id_device = d.id_device 
+                        ORDER BY datetime DESC 
+                        LIMIT 1
+                    ) as last_seen
              FROM tb_device d 
              ORDER BY d.location`
         );

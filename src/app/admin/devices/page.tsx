@@ -30,13 +30,37 @@ interface Device {
     detil_location: string;
     mac_address: string;
     last_seen: string | null;
-    is_active: boolean;
 }
 
-function getDeviceStatus(device: Device): { label: string; isActive: boolean } {
-    return device.is_active
+const OFFLINE_THRESHOLD_MINUTES = 10;
+
+function getDeviceStatus(lastSeen: string | null): { label: string; isActive: boolean } {
+    if (!lastSeen) return { label: 'Off', isActive: false };
+    const lastSeenDate = new Date(lastSeen);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSeenDate.getTime();
+    const diffMinutes = diffMs / (1000 * 60);
+    return diffMinutes <= OFFLINE_THRESHOLD_MINUTES
         ? { label: 'Active', isActive: true }
-        : { label: 'Offline', isActive: false };
+        : { label: 'Off', isActive: false };
+}
+
+function formatLastSeen(lastSeen: string | null): string {
+    if (!lastSeen) return 'Belum ada data';
+    try {
+        const date = new Date(lastSeen);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        if (diffMins < 1) return 'Baru saja';
+        if (diffMins < 60) return `${diffMins} mnt lalu`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours} jam lalu`;
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays} hari lalu`;
+    } catch {
+        return '-';
+    }
 }
 
 function DeviceManagementContent() {
@@ -86,6 +110,9 @@ function DeviceManagementContent() {
     useEffect(() => {
         if (token) {
             fetchDevices().then(() => setIsLoading(false));
+            // Auto refresh device status every 30 seconds for real-time maintenance monitoring
+            const interval = setInterval(fetchDevices, 30000);
+            return () => clearInterval(interval);
         }
     }, [token, fetchDevices]);
 
@@ -213,7 +240,7 @@ function DeviceManagementContent() {
 
             // Add data rows
             devices.forEach((device, index) => {
-                const status = getDeviceStatus(device);
+                const status = getDeviceStatus(device.last_seen);
                 const row = ws.addRow({
                     no: index + 1,
                     id_device: device.id_device,
@@ -377,7 +404,7 @@ function DeviceManagementContent() {
                             <div>
                                 <p className="text-sm text-gray-500">Device Active</p>
                                 <p className="text-2xl font-bold text-emerald-600">
-                                    {devices.filter(d => getDeviceStatus(d).isActive).length}
+                                    {devices.filter(d => getDeviceStatus(d.last_seen).isActive).length}
                                 </p>
                             </div>
                         </div>
@@ -388,9 +415,9 @@ function DeviceManagementContent() {
                                 <Activity className="h-5 w-5 text-red-500" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Device Offline</p>
+                                <p className="text-sm text-gray-500">Device Off</p>
                                 <p className="text-2xl font-bold text-red-500">
-                                    {devices.filter(d => !getDeviceStatus(d).isActive).length}
+                                    {devices.filter(d => !getDeviceStatus(d.last_seen).isActive).length}
                                 </p>
                             </div>
                         </div>
@@ -451,18 +478,23 @@ function DeviceManagementContent() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {(() => {
-                                                const status = getDeviceStatus(device);
+                                                const status = getDeviceStatus(device.last_seen);
                                                 return (
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                                        status.isActive 
-                                                            ? 'bg-emerald-100 text-emerald-700' 
-                                                            : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                        <span className={`w-2 h-2 rounded-full ${
-                                                            status.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
-                                                        }`} />
-                                                        {status.label}
-                                                    </span>
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit ${
+                                                            status.isActive 
+                                                                ? 'bg-emerald-100 text-emerald-700' 
+                                                                : 'bg-red-100 text-red-700'
+                                                        }`}>
+                                                            <span className={`w-2 h-2 rounded-full ${
+                                                                status.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
+                                                            }`} />
+                                                            {status.label}
+                                                        </span>
+                                                        <span className="text-[11px] text-gray-400 pl-1">
+                                                            {formatLastSeen(device.last_seen)}
+                                                        </span>
+                                                    </div>
                                                 );
                                             })()}
                                         </td>

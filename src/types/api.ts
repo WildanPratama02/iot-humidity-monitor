@@ -5,7 +5,6 @@ export interface DeviceFromAPI {
   detil_location?: string;  // Detail lokasi (optional)
   mac_address?: string;     // MAC Address (optional)
   last_seen?: string;       // Last data received timestamp (optional)
-  is_active?: boolean;      // Whether device is currently active (computed by server)
 }
 
 // Tipe data mentah dari API (Sesuai tb_data)
