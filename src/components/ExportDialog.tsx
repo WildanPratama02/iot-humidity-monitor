@@ -51,25 +51,34 @@ export function ExportDialog({ children }: ExportDialogProps) {
     // Calculate date range based on selection
     if (dateRange !== 'custom') {
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      // Helper to format date as YYYY-MM-DD in local timezone (not UTC)
+      const formatLocalDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
 
       switch (dateRange) {
         case 'today':
-          start = end = today.toISOString().split('T')[0];
+          start = end = formatLocalDate(now);
           break;
         case 'week':
-          const weekAgo = new Date(today);
+          const weekAgo = new Date(now);
           weekAgo.setDate(weekAgo.getDate() - 7);
-          start = weekAgo.toISOString().split('T')[0];
-          end = today.toISOString().split('T')[0];
+          start = formatLocalDate(weekAgo);
+          end = formatLocalDate(now);
           break;
         case 'month':
-          const monthAgo = new Date(today);
+          const monthAgo = new Date(now);
           monthAgo.setMonth(monthAgo.getMonth() - 1);
-          start = monthAgo.toISOString().split('T')[0];
-          end = today.toISOString().split('T')[0];
+          start = formatLocalDate(monthAgo);
+          end = formatLocalDate(now);
           break;
       }
+      
+      console.log(`[Export Debug] Date range: ${dateRange}, start: ${start}, end: ${end}`);
     }
 
     if (!start || !end) {
@@ -99,17 +108,17 @@ export function ExportDialog({ children }: ExportDialogProps) {
       return;
     }
 
-    // Group data by device
+    // Group data by device (trim IDs to handle whitespace differences)
     const exportDataArray: ExportData[] = devicesToExport.map((location) => ({
-      deviceId: location.devices.map((d) => d.id_device).join(', '),
+      deviceId: location.devices.map((d) => d.id_device.trim()).join(', '),
       deviceLocation: location.locationName,
       data: sensorData.filter((item) =>
-        location.devices.some((device) => device.id_device === item.id_device)
+        location.devices.some((device) => device.id_device.trim() === item.id_device.trim())
       ),
     }));
 
     // Export data
-    exportData(
+    await exportData(
       exportDataArray,
       exportFormat,
       `iot-data-${selectedLocation === 'all' ? 'all-locations' : selectedLocation}`

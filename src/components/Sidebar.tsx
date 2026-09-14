@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, MapPin, X, Download } from 'lucide-react';
+import { Search, MapPin, X, Download, FileText } from 'lucide-react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { ExportDialog } from '@/components/ExportDialog';
 import { LocationGroup } from '@/types/api';
 import { StatusIndicator } from '@/components/StatusIndicator';
 import { getDeviceStatus, DeviceStatus } from '@/hooks/useDeviceStatus';
+import { UserMenu } from '@/components/UserMenu';
 
 type StatusFilter = 'all' | DeviceStatus;
 
@@ -96,8 +98,8 @@ export function Sidebar({
       {/* Mobile Sidebar */}
       <div className={`
         ${!isOpen ? '-translate-x-full' : 'translate-x-0'}
-        fixed top-0 left-0 h-screen z-40 lg:hidden
-        w-80 bg-white border-r border-gray-200 flex flex-col
+        fixed top-0 left-0 h-screen max-h-screen z-40 lg:hidden
+        w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden
         transition-transform duration-300 ease-in-out
       `}>
       {/* Header */}
@@ -158,8 +160,8 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Location List */}
-      <div className="flex-1 overflow-y-auto p-2 lg:p-4">
+      {/* Location List - scrollable area */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-2 lg:p-4">
         <div className="space-y-2">
           {filteredLocations.map((location) => {
             const isActive = location.locationName === activeLocation;
@@ -222,8 +224,18 @@ export function Sidebar({
         </div>
       </div>
 
+      {/* Daily Report Link - Mobile Only */}
+      <div className="flex-shrink-0 p-3 lg:p-4 border-t border-gray-200 bg-blue-50 lg:hidden">
+        <Link href="/report">
+          <Button variant="outline" className="w-full gap-2 bg-white hover:bg-blue-100 border-blue-200">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <span className="text-blue-700">Daily Report</span>
+          </Button>
+        </Link>
+      </div>
+
       {/* Export Button - Mobile Only */}
-      <div className="p-3 lg:p-4 border-t border-gray-200 bg-gray-50 lg:hidden">
+      <div className="flex-shrink-0 p-3 lg:p-4 border-t border-gray-200 bg-gray-50 lg:hidden">
         <ExportDialog>
           <Button variant="outline" className="w-full gap-2">
             <Download className="h-4 w-4" />
@@ -233,12 +245,18 @@ export function Sidebar({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 lg:p-4 border-t border-gray-200 bg-gray-50">
+      <div className="flex-shrink-0 p-3 lg:p-4 border-t border-gray-200 bg-gray-50">
         <div className="text-xs lg:text-sm text-gray-600">
           <p>Total Lokasi: {locations.length}</p>
           <p>Total Device: {locations.reduce((acc, loc) => acc + loc.devices.length, 0)}</p>
         </div>
       </div>
+
+      {/* User Menu - Mobile Only */}
+      <div className="flex-shrink-0">
+        <UserMenu />
+      </div>
+      
       </div>
     </>
   );

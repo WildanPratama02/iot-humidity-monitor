@@ -1,7 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ===================================================
+# IoT Humidity Monitor - Production .gitignore
+# ===================================================
 
-# dependencies
-/node_modules
+# =====================
+# Dependencies
+# =====================
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,32 +14,153 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# =====================
+# Next.js Build Output
+# =====================
 /.next/
 /out/
+/build/
+.swc/
 
-# production
-/build
+# =====================
+# Production Build
+# =====================
+dist/
+*.tgz
 
-# misc
-.DS_Store
+# =====================
+# Environment Files
+# =====================
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# =====================
+# Backend Environment
+# =====================
+backend/.env
+backend/.env.*
+!backend/env.example
+
+# =====================
+# SSL/Certificates (SENSITIVE!)
+# =====================
 *.pem
+*.key
+*.crt
+*.p12
+*.pfx
+ssl/
+certificates/
+backend/ssl/
 
-# debug
+# =====================
+# Secrets & API Keys
+# =====================
+*.secret
+*secret*
+*.key
+config/secrets.*
+
+# =====================
+# IDE & Editors
+# =====================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# =====================
+# OS Generated Files
+# =====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# =====================
+# Logs
+# =====================
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# =====================
+# Testing & Coverage
+# =====================
+/coverage/
+/.nyc_output/
+*.lcov
+.jest/
 
-# vercel
-.vercel
-
-# typescript
+# =====================
+# TypeScript Cache
+# =====================
 *.tsbuildinfo
+tsconfig.tsbuildinfo
 next-env.d.ts
+
+# =====================
+# Vercel
+# =====================
+.vercel/
+
+# =====================
+# Turbo
+# =====================
+.turbo/
+
+# =====================
+# Runtime Data
+# =====================
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# =====================
+# Cache & Temp Files
+# =====================
+.cache/
+.temp/
+.tmp/
+*.tmp
+*.temp
+.eslintcache
+.stylelintcache
+.parcel-cache/
+
+# =====================
+# Arduino/IoT (Optional)
+# =====================
+# Uncomment if you don't want to track Arduino binaries
+# *.elf
+# *.hex
+# *.bin
+
+# =====================
+# Backup Files
+# =====================
+*.bak
+*.backup
+*copy*
+*.orig
+
+# =====================
+# Local Development
+# =====================
+.claude/
+.agent/

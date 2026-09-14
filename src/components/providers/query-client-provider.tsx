@@ -1,8 +1,13 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, lazy, Suspense } from 'react';
+
+// Only load devtools in development
+const ReactQueryDevtools = 
+  process.env.NODE_ENV === 'development' 
+    ? lazy(() => import('@tanstack/react-query-devtools').then(mod => ({ default: mod.ReactQueryDevtools })))
+    : () => null;
 
 export function CustomQueryClientProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -10,8 +15,6 @@ export function CustomQueryClientProvider({ children }: { children: ReactNode })
       new QueryClient({
         defaultOptions: {
           queries: {
-            // With SSR, we usually want to set some default staleTime
-            // above 0 to avoid refetching immediately on the client
             staleTime: 60 * 1000,
           },
         },
@@ -21,7 +24,11 @@ export function CustomQueryClientProvider({ children }: { children: ReactNode })
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === 'development' && (
+        <Suspense fallback={null}>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </Suspense>
+      )}
     </QueryClientProvider>
   );
 }

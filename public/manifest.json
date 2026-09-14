@@ -2,7 +2,7 @@
   "name": "IoT Humidity Monitor",
   "short_name": "IoT Monitor",
   "description": "Dashboard monitoring suhu dan kelembaban untuk perangkat IoT",
-  "start_url": "/",
+  "start_url": "https://iot-humidity.qdms.web.id/",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#3b82f6",
