@@ -21,7 +21,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001,
+        PORT: 3000,
         HOST: '0.0.0.0'
       },
       error_file: '/var/log/pm2/iot-frontend-error.log',
